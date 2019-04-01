@@ -1,6 +1,7 @@
 import datetime
 import json
 import logging
+import os
 
 import gspread
 from gspread.utils import a1_to_rowcol
@@ -51,7 +52,8 @@ def from_google_spreadsheets():
     scope = ['https://spreadsheets.google.com/feeds',
              'https://www.googleapis.com/auth/drive']
 
-    credentials = Sac.from_json_keyfile_name('./googlesheets_credentials.json', scope)
+    credentials = Sac.from_json_keyfile_name(
+        os.getcwd().replace('\\', '/') + '/' + 'googlesheets_credentials.json', scope)
     gcc = gspread.authorize(credentials)
 
     archivo = gcc.open(filename)
