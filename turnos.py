@@ -1,16 +1,11 @@
 import argparse
 import logging
-import os
 import time
 
-from api import from_google_spreadsheets, get_today, send_email, ADMIN, ALIAS_TO_MAIL
+from api import from_google_spreadsheets, get_today, send_email, ADMIN, ALIAS_TO_MAIL, LOG_PATH
 
-root_logger = logging.getLogger()
-root_logger.setLevel(logging.DEBUG)
-handler = logging.FileHandler(
-    os.getcwd().replace('\\', '/') + '/' + './EcoMun-shifts.log', 'at','utf-8')
-handler.setFormatter = logging.Formatter('[%(asctime)s] %(levelname)s - %(message)s')  # or whatever
-root_logger.addHandler(handler)
+logging.basicConfig(handlers=[logging.FileHandler(LOG_PATH, 'a', 'utf-8')],
+                    level=logging.DEBUG, format='[%(asctime)s] %(levelname)s - %(message)s')
 
 logger = logging.getLogger(__name__)
 
