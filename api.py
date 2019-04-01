@@ -20,7 +20,7 @@ def send_email(destinations, subject, message, origin='Turnos EcoMun'):
     logger.debug('Subject: %s', subject)
     logger.debug('Message: %s', message)
 
-    with open('credentials.json') as fh:
+    with open('./credentials.json') as fh:
         json_data = json.load(fh)
 
     username = json_data['username']
@@ -51,7 +51,7 @@ def from_google_spreadsheets():
     scope = ['https://spreadsheets.google.com/feeds',
              'https://www.googleapis.com/auth/drive']
 
-    credentials = Sac.from_json_keyfile_name('googlesheets_credentials.json', scope)
+    credentials = Sac.from_json_keyfile_name('./googlesheets_credentials.json', scope)
     gcc = gspread.authorize(credentials)
 
     archivo = gcc.open(filename)
