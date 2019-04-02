@@ -2,7 +2,8 @@ import argparse
 import logging
 import time
 
-from api import from_google_spreadsheets, get_today, send_email, ADMIN, ALIAS_TO_MAIL, LOG_PATH
+from api import from_google_spreadsheets, get_today, send_email, ADMIN, ALIAS_TO_MAIL, LOG_PATH, \
+    gen_subject, gen_message
 
 logging.basicConfig(handlers=[logging.FileHandler(LOG_PATH, 'a', 'utf-8')],
                     level=logging.DEBUG, format='[%(asctime)s] %(levelname)s - %(message)s')
@@ -14,48 +15,6 @@ oauth2client_logger.setLevel(logging.CRITICAL)
 
 urllib3_logger = logging.getLogger('urllib3')
 urllib3_logger.setLevel(logging.CRITICAL)
-
-
-def gen_subject(motive: str, tomorrow: bool):
-    if motive == 'D':
-        subject = 'Examen'
-    elif motive == 'P':
-        subject = 'Práctica'
-    elif motive == 'T':
-        subject = 'Test'
-    elif motive == 'C':
-        subject = 'Clase Teórica'
-    else:
-        send_email(ADMIN, 'ERROR', f'{motive!r} is not a valid motive')
-        return exit(-1)
-
-    if tomorrow:
-        subject += ' mañana'
-    else:
-        subject += ' hoy'
-
-    return subject
-
-
-def gen_message(motive: str, tomorrow: bool):
-    if motive == 'D':
-        message = 'Examen'
-    elif motive == 'P':
-        message = 'Práctica'
-    elif motive == 'T':
-        message = 'Test'
-    elif motive == 'C':
-        message = 'Clase Teórica'
-    else:
-        send_email(ADMIN, 'ERROR', f'{motive!r} is not a valid motive')
-        return exit(-1)
-
-    if tomorrow:
-        message += ' mañana'
-    else:
-        message += ' hoy'
-
-    return message
 
 
 def main(tomorrow=False):
@@ -77,7 +36,7 @@ def main(tomorrow=False):
 
     if data[today] not in ALIAS_TO_MAIL:
         logger.debug('Data is not a known alias, broadcasting')
-        destinations = ', '.join(ALIAS_TO_MAIL.values())
+        destinations = list(ALIAS_TO_MAIL.values())
         motive = data[today]
     else:
         destinations = ALIAS_TO_MAIL[data[today]]
