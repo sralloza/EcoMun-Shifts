@@ -34,6 +34,9 @@ def send_email(destinations, subject, message, origin='Turnos EcoMun', retries=5
 
     testing = os.environ.get('TESTING') is not None
 
+    if not testing:
+        return  # todo remove
+
     with open(CREDENTIALS_PATH) as fh:
         json_data = json.load(fh)
 
@@ -50,7 +53,6 @@ def send_email(destinations, subject, message, origin='Turnos EcoMun', retries=5
 
     body = message.replace('\n', '<br>')
     msg.attach(MIMEText(body, 'html'))
-
 
     while retries > 0:
         try:
