@@ -100,15 +100,15 @@ def test_gen_subject():
 
 
 def test_gen_message():
-    assert gen_message('D', False) == 'Examen hoy'
-    assert gen_message('P', False) == 'Práctica hoy'
-    assert gen_message('T', False) == 'Test hoy'
-    assert gen_message('C', False) == 'Clase Teórica hoy'
+    assert gen_message('D', False) == 'Examen hoy, hay que ir todos.'
+    assert gen_message('P', False) == 'Práctica hoy, hay que ir todos.'
+    assert gen_message('T', False) == 'Test hoy, hay que ir todos.'
+    assert gen_message('C', False) == 'Clase Teórica hoy, te toca ir.'
 
-    assert gen_message('D', True) == 'Examen mañana'
-    assert gen_message('P', True) == 'Práctica mañana'
-    assert gen_message('T', True) == 'Test mañana'
-    assert gen_message('C', True) == 'Clase Teórica mañana'
+    assert gen_message('D', True) == 'Examen mañana, hay que ir todos.'
+    assert gen_message('P', True) == 'Práctica mañana, hay que ir todos.'
+    assert gen_message('T', True) == 'Test mañana, hay que ir todos.'
+    assert gen_message('C', True) == 'Clase Teórica mañana, te toca ir.'
 
     with pytest.raises(SystemExit):
         gen_subject('UNKOWN', False)

@@ -135,21 +135,21 @@ def get_today():
 def gen_subject(motive: str, tomorrow: bool):
     logger.debug('Generating subject from motive %r (tomorrow=%r)', motive, tomorrow)
     if motive == 'D':
-        subject = 'Examen'
+        subject = 'Examen {}'
     elif motive == 'P':
-        subject = 'Práctica'
+        subject = 'Práctica {}'
     elif motive == 'T':
-        subject = 'Test'
+        subject = 'Test {}'
     elif motive == 'C':
-        subject = 'Clase Teórica'
+        subject = 'Clase Teórica {}'
     else:
         send_email(ADMIN, 'ERROR', f'{motive!r} is not a valid motive')
         return exit(-1)
 
     if tomorrow:
-        subject += ' mañana'
+        subject = subject.format('mañana')
     else:
-        subject += ' hoy'
+        subject = subject.format('hoy')
 
     return subject
 
@@ -157,21 +157,21 @@ def gen_subject(motive: str, tomorrow: bool):
 def gen_message(motive: str, tomorrow: bool):
     logger.debug('Generating message from motive %r (tomorrow=%r)', motive, tomorrow)
     if motive == 'D':
-        message = 'Examen'
+        message = 'Examen {}, hay que ir todos.'
     elif motive == 'P':
-        message = 'Práctica'
+        message = 'Práctica {}, hay que ir todos.'
     elif motive == 'T':
-        message = 'Test'
+        message = 'Test {}, hay que ir todos.'
     elif motive == 'C':
-        message = 'Clase Teórica'
+        message = 'Clase Teórica {}, te toca ir.'
     else:
         send_email(ADMIN, 'ERROR', f'{motive!r} is not a valid motive')
         return exit(-1)
 
     if tomorrow:
-        message += ' mañana'
+        message = message.format('mañana')
     else:
-        message += ' hoy'
+        message = message.format('hoy')
 
     return message
 
