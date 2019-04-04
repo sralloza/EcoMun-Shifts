@@ -3,6 +3,7 @@ import json
 import logging
 import os
 import platform
+import random
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -19,10 +20,12 @@ if platform.system() == 'Windows':
     LOG_PATH = 'D:/Sistema/Desktop/turnos-ecomun/ecomun-shifts.log'
     GS_CREDENTIALS_PATH = 'D:/Sistema/Desktop/turnos-ecomun/googlesheets_credentials.json'
     CREDENTIALS_PATH = 'D:/Sistema/Desktop/turnos-ecomun/credentials.json'
+    JOKES_PATH = 'D:/Sistema/Desktop/turnos-ecomun/jokes.json'
 else:
     LOG_PATH = '/home/sralloza/ecomun-shifts/ecomun-shifts.log'
     GS_CREDENTIALS_PATH = '/home/sralloza/ecomun-shifts/googlesheets_credentials.json'
     CREDENTIALS_PATH = '/home/sralloza/ecomun-shifts/credentials.json'
+    JOKES_PATH = '/home/sralloza/ecomun-shifts/jokes.json'
 
 
 def send_email(destinations, subject, message, origin='Turnos EcoMun', retries=5):
@@ -173,7 +176,16 @@ def gen_message(motive: str, tomorrow: bool):
     else:
         message = message.format('hoy')
 
+    message += '\n\nChiste del día:\n' + gen_joke()
+
     return message
+
+
+def gen_joke():
+    with open(JOKES_PATH, encoding='utf-8') as fh:
+        jokes = json.load(fh)
+
+    return random.choice(jokes)
 
 
 DAYS_TO_CELL = {

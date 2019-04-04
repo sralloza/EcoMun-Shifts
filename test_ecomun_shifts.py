@@ -14,9 +14,9 @@ os.environ['SMTP_SERVER_HOST'] = 'localhost'
 os.environ['SMTP_SERVER_PORT'] = '26'
 os.environ['TESTING'] = 'True'
 
-from turnos import gen_subject, gen_message, main
+from shifts import gen_subject, gen_message, main
 from api import send_email, ADMIN, from_google_spreadsheets, get_today, DAYS_TO_CELL, ALIAS_TO_MAIL, \
-    CREDENTIALS_PATH, GS_CREDENTIALS_PATH, LOG_PATH
+    CREDENTIALS_PATH, GS_CREDENTIALS_PATH, LOG_PATH, JOKES_PATH, gen_joke
 
 SMTP_PATH = 'smtp.json'
 
@@ -40,17 +40,21 @@ def tests_paths():
         assert 'D:/Sistema/Desktop/turnos-ecomun/' in LOG_PATH
         assert 'D:/Sistema/Desktop/turnos-ecomun/' in GS_CREDENTIALS_PATH
         assert 'D:/Sistema/Desktop/turnos-ecomun/' in CREDENTIALS_PATH
+        assert 'D:/Sistema/Desktop/turnos-ecomun/' in JOKES_PATH
     else:
         assert '/home/sralloza/ecomun-shifts/' in LOG_PATH
         assert '/home/sralloza/ecomun-shifts/' in GS_CREDENTIALS_PATH
         assert '/home/sralloza/ecomun-shifts/' in CREDENTIALS_PATH
+        assert '/home/sralloza/ecomun-shifts/' in JOKES_PATH
 
     assert LOG_PATH.endswith('.log')
     assert GS_CREDENTIALS_PATH.endswith('.json')
     assert CREDENTIALS_PATH.endswith('.json')
+    assert JOKES_PATH.endswith('.json')
 
     assert os.path.isfile(GS_CREDENTIALS_PATH)
     assert os.path.isfile(CREDENTIALS_PATH)
+    assert os.path.isfile(JOKES_PATH)
 
 
 def test_send_email():
@@ -100,15 +104,15 @@ def test_gen_subject():
 
 
 def test_gen_message():
-    assert gen_message('D', False) == 'Examen hoy, hay que ir todos.'
-    assert gen_message('P', False) == 'Práctica hoy, hay que ir todos.'
-    assert gen_message('T', False) == 'Test hoy, hay que ir todos.'
-    assert gen_message('C', False) == 'Clase Teórica hoy, te toca ir.'
+    assert 'Examen hoy, hay que ir todos.' in gen_message('D', False)
+    assert 'Práctica hoy, hay que ir todos.' in gen_message('P', False)
+    assert 'Test hoy, hay que ir todos.' in gen_message('T', False)
+    assert 'Clase Teórica hoy, te toca ir.' in gen_message('C', False)
 
-    assert gen_message('D', True) == 'Examen mañana, hay que ir todos.'
-    assert gen_message('P', True) == 'Práctica mañana, hay que ir todos.'
-    assert gen_message('T', True) == 'Test mañana, hay que ir todos.'
-    assert gen_message('C', True) == 'Clase Teórica mañana, te toca ir.'
+    assert 'Examen mañana, hay que ir todos.' in gen_message('D', True)
+    assert 'Práctica mañana, hay que ir todos.' in gen_message('P', True)
+    assert 'Test mañana, hay que ir todos.' in gen_message('T', True)
+    assert 'Clase Teórica mañana, te toca ir.' in gen_message('C', True)
 
     with pytest.raises(SystemExit):
         gen_subject('UNKOWN', False)
@@ -117,6 +121,17 @@ def test_gen_message():
         data = json.load(fh)
         assert data['to'] == list((ADMIN,))
         assert 'is not a valid motive' in data['data']
+
+
+def test_gen_joke():
+    assert isinstance(gen_joke(), str)
+    assert isinstance(gen_joke(), str)
+    assert isinstance(gen_joke(), str)
+    assert isinstance(gen_joke(), str)
+    assert len(gen_joke())
+    assert len(gen_joke())
+    assert len(gen_joke())
+    assert len(gen_joke())
 
 
 def test_days_to_cell():
@@ -137,6 +152,18 @@ class TestMain:
 
         data = from_google_spreadsheets()
         today = get_today()
+
+        if today not in data:
+            day = int(str(today)[:-2])
+            month = int(str(today)[-2:])
+
+            datetime_ = datetime.datetime(2019, month, day)
+
+            if datetime_.weekday() in (4, 5, 6):
+                return
+
+            assert 0
+
         if data[today] not in ALIAS_TO_MAIL:
             destinations = list(ALIAS_TO_MAIL.values())
         else:
@@ -155,7 +182,18 @@ class TestMain:
 
         data = from_google_spreadsheets()
         today = get_today() + 1
-        print(data[today])
+
+        if today not in data:
+            day = int(str(today)[:-2])
+            month = int(str(today)[-2:])
+
+            datetime_ = datetime.datetime(2019, month, day)
+
+            if datetime_.weekday() in (4, 5, 6):
+                return
+
+            assert 0
+
         if data[today] not in ALIAS_TO_MAIL:
             destinations = list(ALIAS_TO_MAIL.values())
         else:
