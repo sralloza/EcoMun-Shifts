@@ -11,7 +11,7 @@ import threading
 import pytest
 
 os.environ['SMTP_SERVER_HOST'] = 'localhost'
-os.environ['SMTP_SERVER_PORT'] = '26'
+os.environ['SMTP_SERVER_PORT'] = '2626'
 os.environ['TESTING'] = 'True'
 
 from shifts import gen_subject, gen_message, main
@@ -29,7 +29,7 @@ class CustomSMTPServer(smtpd.SMTPServer):
             json.dump(data, fh, ensure_ascii=False, indent=4)
 
 
-server = CustomSMTPServer(('127.0.0.1', 26), None)
+server = CustomSMTPServer(('127.0.0.1', 2626), None)
 
 threading.Thread(target=asyncore.loop, name='smtpd', daemon=True).start()
 
