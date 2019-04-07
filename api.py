@@ -7,6 +7,7 @@ import random
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from typing import Union
 
 import gspread
 import httplib2
@@ -134,6 +135,19 @@ def get_today():
     code = datetime.datetime.today().strftime('%m%d')
     return int(code)
 
+def split_daycode(daycode: Union[str, int]):
+    daycode = str(daycode)
+
+    if len(daycode) < 2 or len(daycode) > 4:
+        raise ValueError(f'Invalid daycode: {daycode!r}')
+
+    try:
+        month = int(str(daycode)[:-2])
+        day = int(str(daycode)[-2:])
+    except ValueError:
+        raise ValueError(f'Invalid daycode: {daycode!r}')
+
+    return month, day
 
 def gen_subject(motive: str, tomorrow: bool):
     logger.debug('Generating subject from motive %r (tomorrow=%r)', motive, tomorrow)

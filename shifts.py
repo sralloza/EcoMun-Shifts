@@ -4,7 +4,7 @@ import logging
 import time
 
 from api import from_google_spreadsheets, get_today, send_email, ADMIN, ALIAS_TO_MAIL, LOG_PATH, \
-    gen_subject, gen_message
+    gen_subject, gen_message, split_daycode
 
 logging.basicConfig(handlers=[logging.FileHandler(LOG_PATH, 'a', 'utf-8')],
                     level=logging.DEBUG,
@@ -34,11 +34,11 @@ def main(tomorrow=False):
 
     if today not in data:
         logger.critical('Today (%r) not in data', today)
-        day = int(str(today)[:-2])
-        month = int(str(today)[-2:])
-        logger.debug('Day=%r, month=%r', day, month)
+
+        month, day = split_daycode(today)
 
         datetime_ = datetime.datetime(2019, month, day)
+        logger.debug('Day=%r, month=%r, weekday=%r', day, month, datetime_.weekday())
 
         if datetime_.weekday() in (4, 5, 6):
             logger.debug('Identified as weekend')

@@ -16,7 +16,7 @@ os.environ['TESTING'] = 'True'
 
 from shifts import gen_subject, gen_message, main
 from api import send_email, ADMIN, from_google_spreadsheets, get_today, DAYS_TO_CELL, ALIAS_TO_MAIL, \
-    CREDENTIALS_PATH, GS_CREDENTIALS_PATH, LOG_PATH, JOKES_PATH, gen_joke
+    CREDENTIALS_PATH, GS_CREDENTIALS_PATH, LOG_PATH, JOKES_PATH, gen_joke, split_daycode
 
 SMTP_PATH = 'smtp.json'
 
@@ -81,6 +81,47 @@ def test_from_google_spreadsheets():
 def test_get_today():
     assert get_today() == int(datetime.datetime.today().strftime('%m%d'))
     assert isinstance(get_today(), int)
+
+
+# noinspection PyTypeChecker
+def test_split_daycode():
+    assert split_daycode(101) == (1, 1)
+    assert split_daycode(202) == (2, 2)
+    assert split_daycode(303) == (3, 3)
+    assert split_daycode(404) == (4, 4)
+    assert split_daycode(505) == (5, 5)
+    assert split_daycode(606) == (6, 6)
+    assert split_daycode(707) == (7, 7)
+    assert split_daycode(808) == (8, 8)
+    assert split_daycode(909) == (9, 9)
+    assert split_daycode(1010) == (10, 10)
+    assert split_daycode(1111) == (11, 11)
+    assert split_daycode(1212) == (12, 12)
+
+    assert split_daycode(516) == (5, 16)
+    assert split_daycode(630) == (6, 30)
+    assert split_daycode(420) == (4, 20)
+
+    with pytest.raises(ValueError, match='Invalid daycode'):
+        split_daycode(4)
+    with pytest.raises(ValueError, match='Invalid daycode'):
+        split_daycode(40)
+    with pytest.raises(ValueError, match='Invalid daycode'):
+        split_daycode(40000)
+    with pytest.raises(ValueError, match='Invalid daycode'):
+        split_daycode(44164)
+    with pytest.raises(ValueError, match='Invalid daycode'):
+        split_daycode(41659)
+    with pytest.raises(ValueError, match='Invalid daycode'):
+        split_daycode('hola')
+    with pytest.raises(ValueError, match='Invalid daycode'):
+        split_daycode('adios')
+    with pytest.raises(ValueError, match='Invalid daycode'):
+        split_daycode(True)
+    with pytest.raises(ValueError, match='Invalid daycode'):
+        split_daycode(5.26)
+    with pytest.raises(ValueError, match='Invalid daycode'):
+        split_daycode(4 + 2j)
 
 
 def test_gen_subject():
@@ -154,15 +195,23 @@ class TestMain:
         today = get_today()
 
         if today not in data:
-            day = int(str(today)[:-2])
-            month = int(str(today)[-2:])
+            month, day = split_daycode(today)
 
             datetime_ = datetime.datetime(2019, month, day)
 
             if datetime_.weekday() in (4, 5, 6):
+                assert not os.path.isfile(SMTP_PATH)
                 return
 
-            assert 0
+            assert os.path.isfile(SMTP_PATH)
+
+            with open(SMTP_PATH) as fh:
+                mail_data = json.load(fh)
+
+            assert mail_data['to'] == ADMIN
+            assert mail_data['from'] == "idkvnoxkdnfwodk642310@gmail.com"
+            assert 'ERROR' in mail_data['data']
+            assert isinstance(mail_data, dict)
 
         if data[today] not in ALIAS_TO_MAIL:
             destinations = list(ALIAS_TO_MAIL.values())
