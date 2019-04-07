@@ -5,6 +5,7 @@ import os
 import platform
 import random
 import smtplib
+from collections import OrderedDict
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from typing import Union
@@ -30,7 +31,7 @@ else:
 
 
 def send_email(destinations, subject, message, origin='Turnos EcoMun', retries=5):
-    logger.debug('-' * 50)
+    logger.debug('----------------')
     logger.debug('Sending mail')
     logger.debug('Destinations: %s', destinations)
     logger.debug('Subject: %s', subject)
@@ -135,6 +136,7 @@ def get_today():
     code = datetime.datetime.today().strftime('%m%d')
     return int(code)
 
+
 def split_daycode(daycode: Union[str, int]):
     daycode = str(daycode)
 
@@ -149,7 +151,8 @@ def split_daycode(daycode: Union[str, int]):
 
     return month, day
 
-def gen_subject(motive: str, tomorrow: bool):
+
+def gen_subject(motive: str, tomorrow: bool = None):
     logger.debug('Generating subject from motive %r (tomorrow=%r)', motive, tomorrow)
     if motive == 'D':
         subject = 'Examen {}'
@@ -163,10 +166,12 @@ def gen_subject(motive: str, tomorrow: bool):
         send_email(ADMIN, 'ERROR', f'{motive!r} is not a valid motive')
         return exit(-1)
 
-    if tomorrow:
+    if tomorrow is True:
         subject = subject.format('mañana')
-    else:
+    elif tomorrow is False:
         subject = subject.format('hoy')
+    else:
+        subject = subject.format('').strip()
 
     return subject
 
