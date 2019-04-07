@@ -64,7 +64,7 @@ def main(tomorrow=False, weekly_report=False):
 
     return send_email(destinations, gen_subject(motive, tomorrow), gen_message(motive, tomorrow))
 
-import sys;sys.argv.append('-weekly-report')
+
 if __name__ == '__main__':
     logger.debug('-' * 50)
     t0 = time.time()
