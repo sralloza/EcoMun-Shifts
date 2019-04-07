@@ -45,12 +45,12 @@ def send_email(destinations, subject, message, origin='Turnos EcoMun', retries=5
     username = json_data['username']
     password = json_data['password']
 
+    if isinstance(destinations, str):
+        destinations = [destinations, ]
+
     msg = MIMEMultipart()
     msg['From'] = f"{origin} <{username}>"
-    if isinstance(destinations, (tuple, list)):
-        msg['To'] = ', '.join(destinations)
-    else:
-        msg['To'] = destinations
+    msg['To'] = ', '.join(destinations)
     msg['Subject'] = subject
 
     body = message.replace('\n', '<br>')
@@ -245,6 +245,8 @@ def gen_weekly_report(data: dict = None):
         report += value
         report += '\n'
 
+    report += '\n\nChiste del día:\n' + gen_joke()
+
     return report
 
 
@@ -258,6 +260,11 @@ def is_weekend(dt: datetime.datetime):
     if not isinstance(dt, datetime.datetime):
         raise TypeError(f'dt must be datetime.datetime, not {type(dt).__name__!r}')
     return dt.isoweekday() in (6, 7)
+
+def is_class(dt: datetime.datetime):
+    if not isinstance(dt, datetime.datetime):
+        raise TypeError(f'dt must be datetime.datetime, not {type(dt).__name__!r}')
+    return dt.isoweekday() not in (5, 6, 7)
 
 
 DAYS_TO_CELL = {

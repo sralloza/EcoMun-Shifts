@@ -17,7 +17,7 @@ os.environ['TESTING'] = 'True'
 from shifts import gen_subject, gen_message, main
 from api import send_email, ADMIN, from_google_spreadsheets, get_today, DAYS_TO_CELL, ALIAS_TO_MAIL, \
     CREDENTIALS_PATH, GS_CREDENTIALS_PATH, LOG_PATH, JOKES_PATH, gen_joke, split_daycode, \
-    is_labourable, is_weekend, gen_weekly_report
+    is_labourable, is_weekend, gen_weekly_report, is_class
 
 SMTP_PATH = 'smtp.json'
 
@@ -196,6 +196,8 @@ def test_gen_weekly_report():
     assert 'Semana No.' in report
     assert report.count('\n') > 1
 
+    assert 'Chiste del día' in report
+
 
 # noinspection PyTypeChecker
 def test_is_labourable():
@@ -277,6 +279,49 @@ def test_is_weekend():
         is_weekend(1.2)
 
 
+# noinspection PyTypeChecker
+def test_is_class():
+    dt = datetime.datetime
+    assert is_class(dt(2019, 1, 1))
+    assert not is_class(dt(2019, 2, 1))
+    assert not is_class(dt(2019, 3, 1))
+    assert is_class(dt(2019, 4, 1))
+    assert is_class(dt(2019, 5, 1))
+    assert not is_class(dt(2019, 6, 1))
+    assert is_class(dt(2019, 7, 1))
+    assert is_class(dt(2019, 8, 1))
+    assert not is_class(dt(2019, 9, 1))
+    assert is_class(dt(2019, 10, 1))
+    assert not is_class(dt(2019, 11, 1))
+    assert not is_class(dt(2019, 12, 1))
+
+    assert is_class(dt(2019, 4, 8))
+    assert is_class(dt(2019, 4, 9))
+    assert is_class(dt(2019, 4, 10))
+    assert is_class(dt(2019, 4, 11))
+    assert not is_class(dt(2019, 4, 12))
+    assert not is_class(dt(2019, 4, 12))
+    assert not is_class(dt(2019, 4, 13))
+    assert not is_class(dt(2019, 4, 13))
+    assert not is_class(dt(2019, 4, 14))
+    assert not is_class(dt(2019, 4, 14))
+
+    with pytest.raises(TypeError, match='dt must be datetime.datetime'):
+        is_class('hello world')
+    with pytest.raises(TypeError, match='dt must be datetime.datetime'):
+        is_class(datetime.date(2000, 5, 2))
+    with pytest.raises(TypeError, match='dt must be datetime.datetime'):
+        is_class(5)
+    with pytest.raises(TypeError, match='dt must be datetime.datetime'):
+        is_class(True)
+    with pytest.raises(TypeError, match='dt must be datetime.datetime'):
+        is_class(None)
+    with pytest.raises(TypeError, match='dt must be datetime.datetime'):
+        is_class(5 + 2j)
+    with pytest.raises(TypeError, match='dt must be datetime.datetime'):
+        is_class(1.2)
+
+
 # ------------------- TEST CONSTANT VARIABLES ----------------
 def test_days_to_cell():
     assert len(DAYS_TO_CELL) == 46
@@ -302,7 +347,7 @@ class TestMain:
 
             datetime_ = datetime.datetime(2019, month, day)
 
-            if datetime_.isoweekday() in (5, 6, 7):
+            if is_class(datetime_):
                 assert not os.path.isfile(SMTP_PATH)
                 return
 
@@ -311,10 +356,12 @@ class TestMain:
             with open(SMTP_PATH) as fh:
                 mail_data = json.load(fh)
 
-            assert mail_data['to'] == ADMIN
+            assert mail_data['to'] == [ADMIN, ]
             assert mail_data['from'] == "idkvnoxkdnfwodk642310@gmail.com"
             assert 'ERROR' in mail_data['data']
             assert isinstance(mail_data, dict)
+
+            return
 
         if data[today] not in ALIAS_TO_MAIL:
             destinations = list(ALIAS_TO_MAIL.values())
@@ -341,10 +388,21 @@ class TestMain:
 
             datetime_ = datetime.datetime(2019, month, day)
 
-            if datetime_.weekday() in (4, 5, 6):
+            if is_class(datetime_):
+                assert not os.path.isfile(SMTP_PATH)
                 return
 
-            assert 0
+            assert os.path.isfile(SMTP_PATH)
+
+            with open(SMTP_PATH) as fh:
+                mail_data = json.load(fh)
+
+            assert mail_data['to'] == [ADMIN, ]
+            assert mail_data['from'] == "idkvnoxkdnfwodk642310@gmail.com"
+            assert 'ERROR' in mail_data['data']
+            assert isinstance(mail_data, dict)
+
+            return
 
         if data[today] not in ALIAS_TO_MAIL:
             destinations = list(ALIAS_TO_MAIL.values())
