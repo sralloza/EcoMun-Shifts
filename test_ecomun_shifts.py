@@ -16,7 +16,8 @@ os.environ['TESTING'] = 'True'
 
 from shifts import gen_subject, gen_message, main
 from api import send_email, ADMIN, from_google_spreadsheets, get_today, DAYS_TO_CELL, ALIAS_TO_MAIL, \
-    CREDENTIALS_PATH, GS_CREDENTIALS_PATH, LOG_PATH, JOKES_PATH, gen_joke, split_daycode
+    CREDENTIALS_PATH, GS_CREDENTIALS_PATH, LOG_PATH, JOKES_PATH, gen_joke, split_daycode, \
+    is_labourable, is_weekend, gen_weekly_report
 
 SMTP_PATH = 'smtp.json'
 
@@ -135,6 +136,11 @@ def test_gen_subject():
     assert gen_subject('T', True) == 'Test mañana'
     assert gen_subject('C', True) == 'Clase Teórica mañana'
 
+    assert gen_subject('D', None) == 'Examen'
+    assert gen_subject('P', None) == 'Práctica'
+    assert gen_subject('T', None) == 'Test'
+    assert gen_subject('C', None) == 'Clase Teórica'
+
     with pytest.raises(SystemExit):
         gen_subject('UNKOWN', False)
 
@@ -175,6 +181,103 @@ def test_gen_joke():
     assert len(gen_joke())
 
 
+def test_gen_weekly_report():
+    report = gen_weekly_report()
+
+    assert 'Monday' not in report
+    assert 'Tuesday' not in report
+    assert 'Thursday' not in report
+    assert 'Friday' not in report
+    assert 'Saturday' not in report
+    assert 'Sunday' not in report
+    assert 'day' not in report
+
+    assert 'Informe semanal' in report
+    assert 'Semana No.' in report
+    assert report.count('\n') > 1
+
+
+# noinspection PyTypeChecker
+def test_is_labourable():
+    dt = datetime.datetime
+    assert is_labourable(dt(2019, 1, 1))
+    assert is_labourable(dt(2019, 2, 1))
+    assert is_labourable(dt(2019, 3, 1))
+    assert is_labourable(dt(2019, 4, 1))
+    assert is_labourable(dt(2019, 5, 1))
+    assert not is_labourable(dt(2019, 6, 1))
+    assert is_labourable(dt(2019, 7, 1))
+    assert is_labourable(dt(2019, 8, 1))
+    assert not is_labourable(dt(2019, 9, 1))
+    assert is_labourable(dt(2019, 10, 1))
+    assert is_labourable(dt(2019, 11, 1))
+    assert not is_labourable(dt(2019, 12, 1))
+
+    assert is_labourable(dt(2019, 4, 8))
+    assert is_labourable(dt(2019, 4, 9))
+    assert is_labourable(dt(2019, 4, 10))
+    assert is_labourable(dt(2019, 4, 11))
+    assert is_labourable(dt(2019, 4, 12))
+    assert not is_labourable(dt(2019, 4, 13))
+    assert not is_labourable(dt(2019, 4, 14))
+
+    with pytest.raises(TypeError, match='dt must be datetime.datetime'):
+        is_labourable('hello world')
+    with pytest.raises(TypeError, match='dt must be datetime.datetime'):
+        is_labourable(datetime.date(2000, 5, 2))
+    with pytest.raises(TypeError, match='dt must be datetime.datetime'):
+        is_labourable(5)
+    with pytest.raises(TypeError, match='dt must be datetime.datetime'):
+        is_labourable(True)
+    with pytest.raises(TypeError, match='dt must be datetime.datetime'):
+        is_labourable(None)
+    with pytest.raises(TypeError, match='dt must be datetime.datetime'):
+        is_labourable(5 + 2j)
+    with pytest.raises(TypeError, match='dt must be datetime.datetime'):
+        is_labourable(1.2)
+
+
+# noinspection PyTypeChecker
+def test_is_weekend():
+    dt = datetime.datetime
+    assert not is_weekend(dt(2019, 1, 1))
+    assert not is_weekend(dt(2019, 2, 1))
+    assert not is_weekend(dt(2019, 3, 1))
+    assert not is_weekend(dt(2019, 4, 1))
+    assert not is_weekend(dt(2019, 5, 1))
+    assert is_weekend(dt(2019, 6, 1))
+    assert not is_weekend(dt(2019, 7, 1))
+    assert not is_weekend(dt(2019, 8, 1))
+    assert is_weekend(dt(2019, 9, 1))
+    assert not is_weekend(dt(2019, 10, 1))
+    assert not is_weekend(dt(2019, 11, 1))
+    assert is_weekend(dt(2019, 12, 1))
+
+    assert not is_weekend(dt(2019, 4, 8))
+    assert not is_weekend(dt(2019, 4, 9))
+    assert not is_weekend(dt(2019, 4, 10))
+    assert not is_weekend(dt(2019, 4, 11))
+    assert not is_weekend(dt(2019, 4, 12))
+    assert is_weekend(dt(2019, 4, 13))
+    assert is_weekend(dt(2019, 4, 14))
+
+    with pytest.raises(TypeError, match='dt must be datetime.datetime'):
+        is_weekend('hello world')
+    with pytest.raises(TypeError, match='dt must be datetime.datetime'):
+        is_weekend(datetime.date(2000, 5, 2))
+    with pytest.raises(TypeError, match='dt must be datetime.datetime'):
+        is_weekend(5)
+    with pytest.raises(TypeError, match='dt must be datetime.datetime'):
+        is_weekend(True)
+    with pytest.raises(TypeError, match='dt must be datetime.datetime'):
+        is_weekend(None)
+    with pytest.raises(TypeError, match='dt must be datetime.datetime'):
+        is_weekend(5 + 2j)
+    with pytest.raises(TypeError, match='dt must be datetime.datetime'):
+        is_weekend(1.2)
+
+
+# ------------------- TEST CONSTANT VARIABLES ----------------
 def test_days_to_cell():
     assert len(DAYS_TO_CELL) == 46
     assert isinstance(DAYS_TO_CELL, dict)
@@ -185,7 +288,7 @@ def test_alias_to_mail():
     assert isinstance(ALIAS_TO_MAIL, dict)
 
 
-# -------------------- TESTS OF TURNOS -----------------------
+# -------------------- TESTS OF SHIFTS.PY -----------------------
 
 class TestMain:
     def test_main_today(self):
@@ -199,7 +302,7 @@ class TestMain:
 
             datetime_ = datetime.datetime(2019, month, day)
 
-            if datetime_.weekday() in (4, 5, 6):
+            if datetime_.isoweekday() in (5, 6, 7):
                 assert not os.path.isfile(SMTP_PATH)
                 return
 
@@ -254,6 +357,19 @@ class TestMain:
         assert mail_data['to'] == destinations
         assert mail_data['from'] == "idkvnoxkdnfwodk642310@gmail.com"
         assert 'ma=C3=B1ana' in mail_data['data']
+        assert isinstance(mail_data, dict)
+
+    def test_weekly_report(self):
+        assert main(tomorrow=False, weekly_report=True)
+
+        assert os.path.isfile(SMTP_PATH)
+
+        with open(SMTP_PATH) as fh:
+            mail_data = json.load(fh)
+
+        assert mail_data['to'] == list(ALIAS_TO_MAIL.values())
+        assert mail_data['from'] == "idkvnoxkdnfwodk642310@gmail.com"
+        assert 'Informe Semanal' in mail_data['data']
         assert isinstance(mail_data, dict)
 
 

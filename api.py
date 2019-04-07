@@ -207,6 +207,59 @@ def gen_joke():
     return random.choice(jokes)
 
 
+def gen_weekly_report(data: dict = None):
+    from googletrans import Translator
+
+    if data is None:
+        data = from_google_spreadsheets()
+
+    today = datetime.datetime.today()
+    logger.debug('Generating weekly report (today=%r)', today.ctime())
+    if is_weekend(today):
+        week = today.isocalendar()[1] + 1
+        logger.debug('Weekend detected, week=%r', week)
+    else:
+        week = today.isocalendar()[1]
+        logger.debug('Business day detected, week=%r', week)
+
+    converted = OrderedDict()
+    for daycode, value in data.items():
+        month, day = split_daycode(daycode)
+        dt = datetime.datetime(2019, month, day)
+
+        if dt.isocalendar()[1] == week:
+            if value not in ALIAS_TO_MAIL.keys():
+                value = gen_subject(value, tomorrow=None)
+            converted[dt] = value
+
+    if len(converted) == 0:
+        raise RuntimeError('Emtpy processed data')
+
+    report = f'Informe semanal (Semana No. {week})\n'
+    translator = Translator()
+
+    for dt, value in converted.items():
+        dt: datetime.datetime
+        report += translator.translate(dt.strftime('%A: '), dest='es', src='en').text
+        report += ' '
+        report += value
+        report += '\n'
+
+    return report
+
+
+def is_labourable(dt: datetime.datetime):
+    if not isinstance(dt, datetime.datetime):
+        raise TypeError(f'dt must be datetime.datetime, not {type(dt).__name__!r}')
+    return dt.isoweekday() not in (6, 7)
+
+
+def is_weekend(dt: datetime.datetime):
+    if not isinstance(dt, datetime.datetime):
+        raise TypeError(f'dt must be datetime.datetime, not {type(dt).__name__!r}')
+    return dt.isoweekday() in (6, 7)
+
+
 DAYS_TO_CELL = {
     401: 'G5', 402: 'H5', 403: 'I5', 404: 'J5',
     408: 'G6', 409: 'H6', 410: 'I6', 411: 'J6',
