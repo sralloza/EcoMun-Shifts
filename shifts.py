@@ -3,8 +3,8 @@ import datetime
 import logging
 import time
 
-from api import from_google_spreadsheets, get_today, send_email, ADMIN, ALIAS_TO_MAIL, LOG_PATH, \
-    gen_subject, gen_message, split_daycode, gen_weekly_report, is_class
+from api import from_google_spreadsheets, get_daycode, send_email, ADMIN_EMAIL, ALIAS_TO_MAIL, LOG_PATH, \
+    gen_subject, gen_message, split_daycode, gen_weekly_report, is_class, FROM_EMAIL
 
 logging.basicConfig(handlers=[logging.FileHandler(LOG_PATH, 'a', 'utf-8')],
                     level=logging.DEBUG,
@@ -30,33 +30,30 @@ def main(tomorrow=False, weekly_report=False):
         destinations = list(ALIAS_TO_MAIL.values())
         return send_email(destinations, 'Informe Semanal', report)
 
-    if tomorrow:
-        today = get_today() + 1
-    else:
-        today = get_today()
+    daycode = get_daycode(tomorrow=tomorrow)
 
-    logger.debug('Today=%r', today)
+    logger.debug('Daycode=%r', daycode)
 
-    if today not in data:
-        logger.critical('Today (%r) not in data', today)
+    if daycode not in data:
+        logger.critical('Daycode (%r) not in data', daycode)
 
-        month, day = split_daycode(today)
+        month, day = split_daycode(daycode)
 
         datetime_ = datetime.datetime(2019, month, day)
         logger.debug('Day=%r, month=%r, weekday=%r', day, month, datetime_.weekday())
 
-        if is_class(datetime_):
+        if not is_class(datetime_):
             logger.debug('Identified as weekend')
-            return
+            return True
 
-        return send_email(ADMIN, 'ERROR', f'{today!r} is not defined in the database')
+        return send_email(ADMIN_EMAIL, 'ERROR', f'{daycode!r} is not defined in the database')
 
-    if data[today] not in ALIAS_TO_MAIL:
+    if data[daycode] not in ALIAS_TO_MAIL:
         logger.debug('Data is not a known alias, broadcasting')
         destinations = list(ALIAS_TO_MAIL.values())
-        motive = data[today]
+        motive = data[daycode]
     else:
-        destinations = ALIAS_TO_MAIL[data[today]]
+        destinations = ALIAS_TO_MAIL[data[daycode]]
         logger.debug('Found alias: %r', destinations)
         motive = 'C'
 

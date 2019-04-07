@@ -8,10 +8,12 @@ import smtplib
 from collections import OrderedDict
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from functools import lru_cache
 from typing import Union
 
 import gspread
 import httplib2
+import oauth2client.client
 import requests
 from gspread.utils import a1_to_rowcol
 from oauth2client.service_account import ServiceAccountCredentials as Sac
@@ -81,7 +83,8 @@ def send_email(destinations, subject, message, origin='Turnos EcoMun', retries=5
     return False
 
 
-def from_google_spreadsheets(retries=5):
+@lru_cache()
+def from_google_spreadsheets(retries=10):
     filename = 'Turnos EcoMun'
     sheetname = 'Calendario'
     logger.debug('Getting info from google spreadsheets - %s - %s', filename, sheetname)
@@ -107,6 +110,10 @@ def from_google_spreadsheets(retries=5):
             logger.warning('Connection error in authorization, retries=%r', retries)
             retries -= 1
             continue
+        except oauth2client.client.HttpAccessTokenRefreshError:
+            logger.warning('HttpAccessTokenRefreshError in authorization, retries=%r', retries)
+            retries -= 1
+            continue
 
         try:
             archivo = gcc.open(filename)
@@ -129,11 +136,17 @@ def from_google_spreadsheets(retries=5):
         return output
 
     logger.critical('Max retries')
-    return send_email(ADMIN, 'ERROR', 'MAX RETRIES. CHECK LOG')
+    send_email(ADMIN_EMAIL, 'ERROR', 'MAX RETRIES. CHECK LOG')
+    raise RuntimeError('Max retries')
 
 
-def get_today():
-    code = datetime.datetime.today().strftime('%m%d')
+def get_daycode(tomorrow=False):
+    dt = datetime.datetime.today()
+
+    if tomorrow:
+        dt += datetime.timedelta(days=1)
+
+    code = dt.strftime('%m%d')
     return int(code)
 
 
@@ -163,7 +176,7 @@ def gen_subject(motive: str, tomorrow: bool = None):
     elif motive == 'C':
         subject = 'Clase Teórica {}'
     else:
-        send_email(ADMIN, 'ERROR', f'{motive!r} is not a valid motive')
+        send_email(ADMIN_EMAIL, 'ERROR', f'{motive!r} is not a valid motive')
         return exit(-1)
 
     if tomorrow is True:
@@ -187,7 +200,7 @@ def gen_message(motive: str, tomorrow: bool):
     elif motive == 'C':
         message = 'Clase Teórica {}, te toca ir.'
     else:
-        send_email(ADMIN, 'ERROR', f'{motive!r} is not a valid motive')
+        send_email(ADMIN_EMAIL, 'ERROR', f'{motive!r} is not a valid motive')
         return exit(-1)
 
     if tomorrow:
@@ -261,6 +274,7 @@ def is_weekend(dt: datetime.datetime):
         raise TypeError(f'dt must be datetime.datetime, not {type(dt).__name__!r}')
     return dt.isoweekday() in (6, 7)
 
+
 def is_class(dt: datetime.datetime):
     if not isinstance(dt, datetime.datetime):
         raise TypeError(f'dt must be datetime.datetime, not {type(dt).__name__!r}')
@@ -276,11 +290,8 @@ DAYS_TO_CELL = {
     506: 'M6', 507: 'N6', 508: 'O6', 509: 'P6',
     513: 'M7', 514: 'N7', 515: 'O7', 516: 'P7',
     520: 'M8', 521: 'N8', 522: 'O8', 523: 'P8',
-    527: 'M9', 528: 'N9', 529: 'O9', 530: 'P9', 531: 'Q9',
-    603: 'S6', 604: 'T6', 605: 'U6', 606: 'V6',
-    610: 'S7', 611: 'T7', 612: 'U7', 613: 'V7',
-    617: 'S8', 618: 'T8', 619: 'U8', 620: 'V8',
-    624: 'S9', 625: 'T9', 626: 'U9', 627: 'V9',
+    531: 'Q9',
+    627: 'V9',
 }
 
 ALIAS_TO_MAIL = {
@@ -290,4 +301,5 @@ ALIAS_TO_MAIL = {
     'CRU': 'kaluti12@gmail.com'
 }
 
-ADMIN = 'sralloza@gmail.com'
+ADMIN_EMAIL = 'sralloza@gmail.com'
+FROM_EMAIL = "idkvnoxkdnfwodk642310@gmail.com"

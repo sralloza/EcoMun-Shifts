@@ -9,15 +9,17 @@ import smtpd
 import threading
 
 import pytest
+from freezegun import freeze_time
 
 os.environ['SMTP_SERVER_HOST'] = 'localhost'
 os.environ['SMTP_SERVER_PORT'] = '2626'
 os.environ['TESTING'] = 'True'
 
 from shifts import gen_subject, gen_message, main
-from api import send_email, ADMIN, from_google_spreadsheets, get_today, DAYS_TO_CELL, ALIAS_TO_MAIL, \
+from api import send_email, ADMIN_EMAIL, from_google_spreadsheets, get_daycode, DAYS_TO_CELL, \
+    ALIAS_TO_MAIL, \
     CREDENTIALS_PATH, GS_CREDENTIALS_PATH, LOG_PATH, JOKES_PATH, gen_joke, split_daycode, \
-    is_labourable, is_weekend, gen_weekly_report, is_class
+    is_labourable, is_weekend, gen_weekly_report, is_class, FROM_EMAIL
 
 SMTP_PATH = 'smtp.json'
 
@@ -61,11 +63,10 @@ def tests_paths():
 def test_send_email():
     assert send_email('peterpan@peter.com', 'asunto', 'mensaje')
 
-    with open(SMTP_PATH) as fh:
-        data = json.load(fh)
-        assert data['to'] == ['peterpan@peter.com']
-        assert 'mensaje' in data['data']
-        assert 'Subject: asunto' in data['data']
+    data = read_email()
+    assert data['to'] == ['peterpan@peter.com']
+    assert 'mensaje' in data['data']
+    assert 'Subject: asunto' in data['data']
 
 
 def test_from_google_spreadsheets():
@@ -79,9 +80,36 @@ def test_from_google_spreadsheets():
     assert isinstance(data, dict)
 
 
-def test_get_today():
-    assert get_today() == int(datetime.datetime.today().strftime('%m%d'))
-    assert isinstance(get_today(), int)
+class TestGetDaycode:
+    @freeze_time('2019-04-08')
+    def test_get_daycode_1(self):
+        assert get_daycode() == 408
+        assert get_daycode(True) == 409
+
+    @freeze_time('2019-04-09')
+    def test_get_daycode_2(self):
+        assert get_daycode() == 409
+        assert get_daycode(True) == 410
+
+    @freeze_time('2019-04-10')
+    def test_get_daycode_3(self):
+        assert get_daycode() == 410
+        assert get_daycode(True) == 411
+
+    @freeze_time('2019-04-30')
+    def test_get_daycode_4(self):
+        assert get_daycode() == 430
+        assert get_daycode(True) == 501
+
+    @freeze_time('2019-05-31')
+    def test_get_daycode_5(self):
+        assert get_daycode() == 531
+        assert get_daycode(True) == 601
+
+    @freeze_time('2019-06-30')
+    def test_get_daycode_6(self):
+        assert get_daycode() == 630
+        assert get_daycode(True) == 701
 
 
 # noinspection PyTypeChecker
@@ -144,10 +172,9 @@ def test_gen_subject():
     with pytest.raises(SystemExit):
         gen_subject('UNKOWN', False)
 
-    with open(SMTP_PATH) as fh:
-        data = json.load(fh)
-        assert data['to'] == list((ADMIN,))
-        assert 'is not a valid motive' in data['data']
+    data = read_email()
+    assert data['to'] == list((ADMIN_EMAIL,))
+    assert 'is not a valid motive' in data['data']
 
 
 def test_gen_message():
@@ -164,10 +191,9 @@ def test_gen_message():
     with pytest.raises(SystemExit):
         gen_subject('UNKOWN', False)
 
-    with open(SMTP_PATH) as fh:
-        data = json.load(fh)
-        assert data['to'] == list((ADMIN,))
-        assert 'is not a valid motive' in data['data']
+    data = read_email()
+    assert data['to'] == [ADMIN_EMAIL, ]
+    assert 'is not a valid motive' in data['data']
 
 
 def test_gen_joke():
@@ -324,7 +350,7 @@ def test_is_class():
 
 # ------------------- TEST CONSTANT VARIABLES ----------------
 def test_days_to_cell():
-    assert len(DAYS_TO_CELL) == 46
+    assert len(DAYS_TO_CELL) == 27
     assert isinstance(DAYS_TO_CELL, dict)
 
 
@@ -335,103 +361,187 @@ def test_alias_to_mail():
 
 # -------------------- TESTS OF SHIFTS.PY -----------------------
 
-class TestMain:
-    def test_main_today(self):
-        main()
+class TestMainToday:
+    @freeze_time('2019-04-01')
+    def test_main_2019_04_01(self, data):
+        assert main()
+        today = get_daycode()
 
-        data = from_google_spreadsheets()
-        today = get_today()
+        assert today in data
+        assert data[today] == 'CGC'
+        assert data[today] in ALIAS_TO_MAIL
 
-        if today not in data:
-            month, day = split_daycode(today)
-
-            datetime_ = datetime.datetime(2019, month, day)
-
-            if is_class(datetime_):
-                assert not os.path.isfile(SMTP_PATH)
-                return
-
-            assert os.path.isfile(SMTP_PATH)
-
-            with open(SMTP_PATH) as fh:
-                mail_data = json.load(fh)
-
-            assert mail_data['to'] == [ADMIN, ]
-            assert mail_data['from'] == "idkvnoxkdnfwodk642310@gmail.com"
-            assert 'ERROR' in mail_data['data']
-            assert isinstance(mail_data, dict)
-
-            return
-
-        if data[today] not in ALIAS_TO_MAIL:
-            destinations = list(ALIAS_TO_MAIL.values())
-        else:
-            destinations = [ALIAS_TO_MAIL[data[today]], ]
-
-        with open(SMTP_PATH) as fh:
-            mail_data = json.load(fh)
-
-        assert mail_data['to'] == destinations
-        assert mail_data['from'] == "idkvnoxkdnfwodk642310@gmail.com"
+        mail_data = read_email()
+        assert mail_data['to'] == [ALIAS_TO_MAIL['CGC'], ]
+        assert mail_data['from'] == FROM_EMAIL
         assert 'hoy' in mail_data['data']
         assert isinstance(mail_data, dict)
 
-    def test_main_tomorrow(self):
-        main(tomorrow=True)
+    @freeze_time('2019-04-02')
+    def test_main_2019_04_02(self, data):
+        assert main()
+        today = get_daycode()
 
-        data = from_google_spreadsheets()
-        today = get_today() + 1
+        assert today in data
+        assert data[today] == 'CRU'
+        assert data[today] in ALIAS_TO_MAIL
 
-        if today not in data:
-            day = int(str(today)[:-2])
-            month = int(str(today)[-2:])
-
-            datetime_ = datetime.datetime(2019, month, day)
-
-            if is_class(datetime_):
-                assert not os.path.isfile(SMTP_PATH)
-                return
-
-            assert os.path.isfile(SMTP_PATH)
-
-            with open(SMTP_PATH) as fh:
-                mail_data = json.load(fh)
-
-            assert mail_data['to'] == [ADMIN, ]
-            assert mail_data['from'] == "idkvnoxkdnfwodk642310@gmail.com"
-            assert 'ERROR' in mail_data['data']
-            assert isinstance(mail_data, dict)
-
-            return
-
-        if data[today] not in ALIAS_TO_MAIL:
-            destinations = list(ALIAS_TO_MAIL.values())
-        else:
-            destinations = [ALIAS_TO_MAIL[data[today]], ]
-
-        with open(SMTP_PATH) as fh:
-            mail_data = json.load(fh)
-
-        assert mail_data['to'] == destinations
-        assert mail_data['from'] == "idkvnoxkdnfwodk642310@gmail.com"
-        assert 'ma=C3=B1ana' in mail_data['data']
+        mail_data = read_email()
+        assert mail_data['to'] == [ALIAS_TO_MAIL['CRU'], ]
+        assert mail_data['from'] == FROM_EMAIL
+        assert 'hoy' in mail_data['data']
         assert isinstance(mail_data, dict)
 
-    def test_weekly_report(self):
-        assert main(tomorrow=False, weekly_report=True)
+    @freeze_time('2019-04-03')
+    def test_main_2019_04_03(self, data):
+        assert main()
+        today = get_daycode()
 
-        assert os.path.isfile(SMTP_PATH)
+        assert today in data
+        assert data[today] == 'P'
+        assert data[today] not in ALIAS_TO_MAIL
 
-        with open(SMTP_PATH) as fh:
-            mail_data = json.load(fh)
-
+        mail_data = read_email()
         assert mail_data['to'] == list(ALIAS_TO_MAIL.values())
-        assert mail_data['from'] == "idkvnoxkdnfwodk642310@gmail.com"
-        assert 'Informe Semanal' in mail_data['data']
+        assert mail_data['from'] == FROM_EMAIL
+        assert 'hoy' in mail_data['data']
+        assert isinstance(mail_data, dict)
+
+    @freeze_time('2019-04-04')
+    def test_main_2019_04_04(self, data):
+        assert main()
+        today = get_daycode()
+
+        assert today in data
+        assert data[today] == 'CGC'
+        assert data[today] in ALIAS_TO_MAIL
+
+        mail_data = read_email()
+        assert mail_data['to'] == [ALIAS_TO_MAIL['CGC'], ]
+        assert mail_data['from'] == FROM_EMAIL
+        assert 'hoy' in mail_data['data']
+        assert isinstance(mail_data, dict)
+
+    @freeze_time('2019-04-05')
+    def test_main_2019_04_05(self, data):
+        assert main()
+
+        today = get_daycode()
+        assert today not in data
+        assert not os.path.isfile(SMTP_PATH)
+
+    @freeze_time('2019-04-06')
+    def test_main_2019_04_06(self, data):
+        assert main()
+
+        today = get_daycode()
+        assert today not in data
+        assert not os.path.isfile(SMTP_PATH)
+
+    @freeze_time('2019-04-07')
+    def test_main_2019_04_07(self, data):
+        assert main()
+
+        today = get_daycode()
+        assert today not in data
+        assert not os.path.isfile(SMTP_PATH)
+
+    @freeze_time('2019-04-08')
+    def test_main_2019_04_08(self, data):
+        assert main()
+        today = get_daycode()
+
+        assert today in data
+        assert data[today] == 'VHP'
+        assert data[today] in ALIAS_TO_MAIL
+
+        mail_data = read_email()
+        assert mail_data['to'] == [ALIAS_TO_MAIL['VHP'], ]
+        assert mail_data['from'] == FROM_EMAIL
+        assert 'hoy' in mail_data['data']
+        assert isinstance(mail_data, dict)
+
+    @freeze_time('2019-04-09')
+    def test_main_2019_04_09(self, data):
+        assert main()
+        today = get_daycode()
+
+        assert today in data
+        assert data[today] == 'DAG'
+        assert data[today] in ALIAS_TO_MAIL
+
+        mail_data = read_email()
+        assert mail_data['to'] == [ALIAS_TO_MAIL['DAG'], ]
+        assert mail_data['from'] == FROM_EMAIL
+        assert 'hoy' in mail_data['data']
+        assert isinstance(mail_data, dict)
+
+    @freeze_time('2019-04-11')
+    def test_main_2019_04_11(self, data):
+        assert main()
+
+        today = get_daycode()
+        assert today in data
+        assert data[today] == 'T'
+        assert data[today] not in ALIAS_TO_MAIL
+
+        mail_data = read_email()
+        assert mail_data['to'] == list(ALIAS_TO_MAIL.values())
+        assert mail_data['from'] == FROM_EMAIL
+        assert 'hoy' in mail_data['data']
+        assert isinstance(mail_data, dict)
+
+    @freeze_time('2019-05-31')
+    def test_main_2019_05_31(self, data):
+        assert main()
+
+        today = get_daycode()
+        assert today in data
+        assert data[today] == 'D'
+        assert data[today] not in ALIAS_TO_MAIL
+
+        mail_data = read_email()
+        assert mail_data['to'] == list(ALIAS_TO_MAIL.values())
+        assert mail_data['from'] == FROM_EMAIL
+        assert 'hoy' in mail_data['data']
+        assert isinstance(mail_data, dict)
+
+    @freeze_time('2019-06-04')
+    def test_mail_2019_06_04(self, data):
+        assert main()
+
+        today = get_daycode()
+        assert today not in data
+        assert is_class(datetime.datetime(2019, 6, 4))
+
+        mail_data = read_email()
+        assert mail_data['to'] == [ADMIN_EMAIL, ]
+        assert mail_data['from'] == FROM_EMAIL
+        assert 'ERROR' in mail_data['data']
+        assert isinstance(mail_data, dict)
+
+    @freeze_time('2019-06-27')
+    def test_main_2019_06_27(self, data):
+        assert main()
+
+        today = get_daycode()
+        assert today in data
+        assert data[today] == 'D'
+        assert data[today] not in ALIAS_TO_MAIL
+
+        mail_data = read_email()
+        assert mail_data['to'] == list(ALIAS_TO_MAIL.values())
+        assert mail_data['from'] == FROM_EMAIL
+        assert 'hoy' in mail_data['data']
         assert isinstance(mail_data, dict)
 
 
 # -------------------- FIXTURES -----------------------
+
+@pytest.fixture(scope='module')
+def data():
+    return from_google_spreadsheets()
+
 
 @pytest.fixture(autouse=True)
 def autoreset():
@@ -447,3 +557,10 @@ def safe_delete_files():
 
 def teardown_module():
     return safe_delete_files()
+
+
+def read_email():
+    assert os.path.isfile(SMTP_PATH)
+
+    with open(SMTP_PATH, encoding='utf-8') as fh:
+        return json.load(fh)
