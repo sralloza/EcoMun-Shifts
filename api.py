@@ -43,7 +43,6 @@ def send_email(destinations, subject, message, origin='Turnos EcoMun', retries=5
     logger.debug('Subject: %s', subject)
     logger.debug('Message: %s', message)
 
-
     with open(CREDENTIALS_PATH) as fh:
         json_data = json.load(fh)
 
@@ -281,6 +280,14 @@ def is_weekend(dt: datetime.datetime):
 def is_class(dt: datetime.datetime):
     if not isinstance(dt, datetime.datetime):
         raise TypeError(f'dt must be datetime.datetime, not {type(dt).__name__!r}')
+
+    if datetime.datetime(2019, 4, 15) <= dt <= datetime.datetime(2019, 4, 23):
+        return False
+    if datetime.datetime(2019, 5, 27) <= dt <= datetime.datetime(2019, 5, 30):
+        return False
+    if datetime.datetime(2019, 6, 1) <= dt <= datetime.datetime(2019, 6, 27):
+        return False
+
     return dt.isoweekday() not in (5, 6, 7)
 
 
@@ -289,7 +296,7 @@ DAYS_TO_CELL = {
     408: 'G6', 409: 'H6', 410: 'I6', 411: 'J6',
     424: 'I8', 425: 'J8',
     429: 'G9', 430: 'H9',
-    501: 'P5',
+    501: 'O5', 502: 'P5',
     506: 'M6', 507: 'N6', 508: 'O6', 509: 'P6',
     513: 'M7', 514: 'N7', 515: 'O7', 516: 'P7',
     520: 'M8', 521: 'N8', 522: 'O8', 523: 'P8',
