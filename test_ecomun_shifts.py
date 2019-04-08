@@ -343,6 +343,21 @@ def test_is_class():
     assert not is_class(dt(2019, 4, 22))
     assert not is_class(dt(2019, 4, 23))
 
+    assert not is_class(dt(2019, 6, 1))
+    assert not is_class(dt(2019, 6, 2))
+    assert not is_class(dt(2019, 6, 3))
+    assert not is_class(dt(2019, 6, 7))
+    assert not is_class(dt(2019, 6, 10))
+    assert not is_class(dt(2019, 6, 13))
+    assert not is_class(dt(2019, 6, 14))
+    assert not is_class(dt(2019, 6, 17))
+    assert not is_class(dt(2019, 6, 19))
+    assert not is_class(dt(2019, 6, 21))
+    assert not is_class(dt(2019, 6, 23))
+    assert not is_class(dt(2019, 6, 25))
+    assert not is_class(dt(2019, 6, 27))
+    assert not is_class(dt(2019, 6, 30))
+
     with pytest.raises(TypeError, match='dt must be datetime.datetime'):
         is_class('hello world')
     with pytest.raises(TypeError, match='dt must be datetime.datetime'):
