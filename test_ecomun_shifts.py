@@ -507,6 +507,36 @@ class TestMainToday:
         assert 'hoy' in mail_data['data']
         assert isinstance(mail_data, dict)
 
+    @freeze_time('2019-04-24')
+    def test_main_2019_04_24(self, data):
+        assert main()
+        today = get_daycode()
+
+        assert today in data
+        assert data[today] == 'DAG'
+        assert data[today] in ALIAS_TO_MAIL
+
+        mail_data = read_email()
+        assert mail_data['to'] == [ALIAS_TO_MAIL['DAG'], ]
+        assert mail_data['from'] == FROM_EMAIL
+        assert 'hoy' in mail_data['data']
+        assert isinstance(mail_data, dict)
+
+    @freeze_time('2019-04-25')
+    def test_main_2019_04_25(self, data):
+        assert main()
+        today = get_daycode()
+
+        assert today in data
+        assert data[today] == 'VHP'
+        assert data[today] in ALIAS_TO_MAIL
+
+        mail_data = read_email()
+        assert mail_data['to'] == [ALIAS_TO_MAIL['VHP'], ]
+        assert mail_data['from'] == FROM_EMAIL
+        assert 'hoy' in mail_data['data']
+        assert isinstance(mail_data, dict)
+
     @freeze_time('2019-05-31')
     def test_main_2019_05_31(self, data):
         assert main()
