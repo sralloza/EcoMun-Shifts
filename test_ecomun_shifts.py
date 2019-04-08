@@ -3,6 +3,7 @@
 import asyncore
 import datetime
 import json
+import logging
 import os
 import platform
 import smtpd
@@ -19,7 +20,7 @@ from shifts import gen_subject, gen_message, main
 from api import send_email, ADMIN_EMAIL, from_google_spreadsheets, get_daycode, DAYS_TO_CELL, \
     ALIAS_TO_MAIL, \
     CREDENTIALS_PATH, GS_CREDENTIALS_PATH, LOG_PATH, JOKES_PATH, gen_joke, split_daycode, \
-    is_labourable, is_weekend, gen_weekly_report, is_class, FROM_EMAIL
+    is_labourable, is_weekend, gen_weekly_report, is_class, FROM_EMAIL, TESTING_LOG_PATH
 
 SMTP_PATH = 'smtp.json'
 
@@ -452,11 +453,11 @@ class TestMainToday:
         today = get_daycode()
 
         assert today in data
-        assert data[today] == 'VHP'
+        assert data[today] == 'CRU'
         assert data[today] in ALIAS_TO_MAIL
 
         mail_data = read_email()
-        assert mail_data['to'] == [ALIAS_TO_MAIL['VHP'], ]
+        assert mail_data['to'] == [ALIAS_TO_MAIL['CRU'], ]
         assert mail_data['from'] == FROM_EMAIL
         assert 'hoy' in mail_data['data']
         assert isinstance(mail_data, dict)
@@ -472,6 +473,21 @@ class TestMainToday:
 
         mail_data = read_email()
         assert mail_data['to'] == [ALIAS_TO_MAIL['DAG'], ]
+        assert mail_data['from'] == FROM_EMAIL
+        assert 'hoy' in mail_data['data']
+        assert isinstance(mail_data, dict)
+
+    @freeze_time('2019-04-10')
+    def test_main_2019_04_10(self, data):
+        assert main()
+        today = get_daycode()
+
+        assert today in data
+        assert data[today] == 'VHP'
+        assert data[today] in ALIAS_TO_MAIL
+
+        mail_data = read_email()
+        assert mail_data['to'] == [ALIAS_TO_MAIL['VHP'], ]
         assert mail_data['from'] == FROM_EMAIL
         assert 'hoy' in mail_data['data']
         assert isinstance(mail_data, dict)
@@ -556,6 +572,9 @@ def safe_delete_files():
 
 
 def teardown_module():
+    logging.shutdown()
+
+    os.remove(TESTING_LOG_PATH)
     return safe_delete_files()
 
 

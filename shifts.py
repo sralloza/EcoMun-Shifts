@@ -3,12 +3,18 @@ import datetime
 import logging
 import time
 
-from api import from_google_spreadsheets, get_daycode, send_email, ADMIN_EMAIL, ALIAS_TO_MAIL, LOG_PATH, \
-    gen_subject, gen_message, split_daycode, gen_weekly_report, is_class, FROM_EMAIL
+from api import from_google_spreadsheets, get_daycode, send_email, ADMIN_EMAIL, ALIAS_TO_MAIL, \
+    LOG_PATH, \
+    gen_subject, gen_message, split_daycode, gen_weekly_report, is_class, TESTING, TESTING_LOG_PATH
 
-logging.basicConfig(handlers=[logging.FileHandler(LOG_PATH, 'a', 'utf-8')],
-                    level=logging.DEBUG,
-                    format='[%(asctime)s] %(levelname)s - %(name)s:%(lineno)s - %(message)s')
+if not TESTING:
+    logging.basicConfig(handlers=[logging.FileHandler(LOG_PATH, 'a', 'utf-8')],
+                        level=logging.DEBUG,
+                        format='[%(asctime)s] %(levelname)s - %(name)s:%(lineno)s - %(message)s')
+else:
+    logging.basicConfig(handlers=[logging.FileHandler(TESTING_LOG_PATH, 'a', 'utf-8')],
+                        level=logging.DEBUG,
+                        format='[%(asctime)s] %(levelname)s - %(name)s:%(lineno)s - %(message)s')
 
 logger = logging.getLogger(__name__)
 

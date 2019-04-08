@@ -25,11 +25,15 @@ if platform.system() == 'Windows':
     GS_CREDENTIALS_PATH = 'D:/Sistema/Desktop/turnos-ecomun/googlesheets_credentials.json'
     CREDENTIALS_PATH = 'D:/Sistema/Desktop/turnos-ecomun/credentials.json'
     JOKES_PATH = 'D:/Sistema/Desktop/turnos-ecomun/jokes.json'
+    TESTING_LOG_PATH = 'D:/Sistema/Desktop/turnos-ecomun/testing.log'
 else:
     LOG_PATH = '/home/sralloza/ecomun-shifts/ecomun-shifts.log'
     GS_CREDENTIALS_PATH = '/home/sralloza/ecomun-shifts/googlesheets_credentials.json'
     CREDENTIALS_PATH = '/home/sralloza/ecomun-shifts/credentials.json'
     JOKES_PATH = '/home/sralloza/ecomun-shifts/jokes.json'
+    TESTING_LOG_PATH = '/home/sralloza/ecomun-shifts/testing.log'
+
+TESTING = os.environ.get('TESTING') is not None
 
 
 def send_email(destinations, subject, message, origin='Turnos EcoMun', retries=5):
@@ -39,7 +43,6 @@ def send_email(destinations, subject, message, origin='Turnos EcoMun', retries=5
     logger.debug('Subject: %s', subject)
     logger.debug('Message: %s', message)
 
-    testing = os.environ.get('TESTING') is not None
 
     with open(CREDENTIALS_PATH) as fh:
         json_data = json.load(fh)
@@ -69,10 +72,10 @@ def send_email(destinations, subject, message, origin='Turnos EcoMun', retries=5
             logger.warning('SMTP Connection Error')
             continue
 
-        if not testing:
+        if not TESTING:
             server.starttls()
 
-        if not testing:
+        if not TESTING:
             server.login(username, password)
 
         server.sendmail(username, destinations, msg.as_string())
