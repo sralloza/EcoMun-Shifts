@@ -21,11 +21,11 @@ from oauth2client.service_account import ServiceAccountCredentials as Sac
 logger = logging.getLogger(__name__)
 
 if platform.system() == 'Windows':
-    LOG_PATH = 'D:/Sistema/Desktop/turnos-ecomun/ecomun-shifts.log'
-    GS_CREDENTIALS_PATH = 'D:/Sistema/Desktop/turnos-ecomun/googlesheets_credentials.json'
-    CREDENTIALS_PATH = 'D:/Sistema/Desktop/turnos-ecomun/credentials.json'
-    JOKES_PATH = 'D:/Sistema/Desktop/turnos-ecomun/jokes.json'
-    TESTING_LOG_PATH = 'D:/Sistema/Desktop/turnos-ecomun/testing.log'
+    LOG_PATH = 'D:/.scripts/ecomun-shifts/ecomun-shifts.log'
+    GS_CREDENTIALS_PATH = 'D:/.scripts/ecomun-shifts/googlesheets_credentials.json'
+    CREDENTIALS_PATH = 'D:/.scripts/ecomun-shifts/credentials.json'
+    JOKES_PATH = 'D:/.scripts/ecomun-shifts/jokes.json'
+    TESTING_LOG_PATH = 'D:/.scripts/ecomun-shifts/testing.log'
 else:
     LOG_PATH = '/home/sralloza/ecomun-shifts/ecomun-shifts.log'
     GS_CREDENTIALS_PATH = '/home/sralloza/ecomun-shifts/googlesheets_credentials.json'
