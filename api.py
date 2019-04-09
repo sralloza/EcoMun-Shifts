@@ -43,6 +43,9 @@ def send_email(destinations, subject, message, origin='Turnos EcoMun', retries=5
     logger.debug('Subject: %s', subject)
     logger.debug('Message: %s', message)
 
+    if not TESTING and platform.system() == 'Windows':
+        raise RuntimeError('Only linux')
+
     with open(CREDENTIALS_PATH) as fh:
         json_data = json.load(fh)
 

@@ -1,6 +1,7 @@
 import argparse
 import datetime
 import logging
+import platform
 import time
 
 from api import from_google_spreadsheets, get_daycode, send_email, ADMIN_EMAIL, ALIAS_TO_MAIL, \
@@ -26,13 +27,19 @@ urllib3_logger.setLevel(logging.CRITICAL)
 
 
 def main(tomorrow=False, weekly_report=False):
+    if not TESTING and platform.system() == 'Windows':
+        raise RuntimeError('Only linux')
+
     logger.debug('Starting app, tomorrow=%r, weekly_report=%r', tomorrow, weekly_report)
     data = from_google_spreadsheets()
 
     logger.debug('Data=%r', data)
 
     if weekly_report:
-        report = gen_weekly_report(data)
+        try:
+            report = gen_weekly_report(data)
+        except RuntimeError:
+            return False
         destinations = list(ALIAS_TO_MAIL.values())
         return send_email(destinations, 'Informe Semanal', report)
 
