@@ -75,6 +75,7 @@ def test_from_google_spreadsheets():
 
     for key in data.keys():
         assert key in DAYS_TO_CELL.keys()
+        assert data[key]
 
     assert data.keys() == DAYS_TO_CELL.keys()
     assert len(data.keys())
@@ -208,22 +209,254 @@ def test_gen_joke():
     assert len(gen_joke())
 
 
-def test_gen_weekly_report():
-    report = gen_weekly_report()
+class TestGenWeeklyReport:
+    def test_gen_weekly_report(self):
+        report = gen_weekly_report()
 
-    assert 'Monday' not in report
-    assert 'Tuesday' not in report
-    assert 'Thursday' not in report
-    assert 'Friday' not in report
-    assert 'Saturday' not in report
-    assert 'Sunday' not in report
-    assert 'day' not in report
+        assert 'Monday' not in report
+        assert 'Tuesday' not in report
+        assert 'Thursday' not in report
+        assert 'Friday' not in report
+        assert 'Saturday' not in report
+        assert 'Sunday' not in report
+        assert 'day' not in report
 
-    assert 'Informe semanal' in report
-    assert 'Semana No.' in report
-    assert report.count('\n') > 1
+        assert 'Informe semanal' in report
+        assert 'Semana No.' in report
+        assert report.count('\n') > 1
 
-    assert 'Chiste del día' in report
+        assert 'Chiste del día' in report
+
+    @freeze_time('2019-03-31')
+    def test_week_14(self):
+        assert main(weekly_report=True)
+
+        mail = read_email()
+        assert mail['to'] == list(ALIAS_TO_MAIL.values())
+        assert mail['from'] == FROM_EMAIL
+
+        report = gen_weekly_report()
+
+        assert 'Informe Semanal' in mail['data']
+        assert 'Informe semanal' in report
+        assert 'Chiste del día' in report
+
+        assert 'Lunes' in report
+        assert 'Martes' in report
+        assert 'Miércoles' in report
+        assert 'Jueves' in report
+        assert 'Viernes' not in report
+        assert 'Sábado' not in report
+        assert 'Domingo' not in report
+
+    @pytest.mark.focus
+    @freeze_time('2019-04-07')
+    def test_week_15(self, data):
+        assert main(weekly_report=True)
+
+        mail = read_email()
+        assert mail['to'] == list(ALIAS_TO_MAIL.values())
+        assert mail['from'] == FROM_EMAIL
+
+        report = gen_weekly_report(data)
+
+        assert 'Informe Semanal' in mail['data']
+        assert 'Informe semanal' in report
+        assert 'Chiste del día' in report
+
+        assert 'Lunes' in report
+        assert 'Martes' in report
+        assert 'Miércoles' in report
+        assert 'Jueves' in report
+        assert 'Viernes' not in report
+        assert 'Sábado' not in report
+        assert 'Domingo' not in report
+
+    @freeze_time('2019-04-14')
+    def test_week_16(self, data):
+        assert not main(weekly_report=True)
+        assert not os.path.isfile(SMTP_PATH)
+
+        with pytest.raises(RuntimeError, match='Emtpy processed data'):
+            gen_weekly_report(data)
+
+    @freeze_time('2019-04-21')
+    def test_week_17(self, data):
+        assert main(weekly_report=True)
+
+        mail = read_email()
+        assert mail['to'] == list(ALIAS_TO_MAIL.values())
+        assert mail['from'] == FROM_EMAIL
+
+        report = gen_weekly_report(data)
+
+        assert 'Informe Semanal' in mail['data']
+        assert 'Informe semanal' in report
+        assert 'Chiste del día' in report
+
+        assert 'Lunes' not in report
+        assert 'Martes' not in report
+        assert 'Miércoles' in report
+        assert 'Jueves' in report
+        assert 'Viernes' not in report
+        assert 'Sábado' not in report
+        assert 'Domingo' not in report
+
+    @freeze_time('2019-04-28')
+    def test_week_18(self, data):
+        assert main(weekly_report=True)
+
+        mail = read_email()
+        assert mail['to'] == list(ALIAS_TO_MAIL.values())
+        assert mail['from'] == FROM_EMAIL
+
+        report = gen_weekly_report(data)
+
+        assert 'Informe Semanal' in mail['data']
+        assert 'Informe semanal' in report
+        assert 'Chiste del día' in report
+
+        assert 'Lunes' in report
+        assert 'Martes' in report
+        assert 'Miércoles' in report
+        assert 'Jueves' in report
+        assert 'Viernes' not in report
+        assert 'Sábado' not in report
+        assert 'Domingo' not in report
+
+    @freeze_time('2019-05-01')
+    def test_week_19(self, data):
+        assert main(weekly_report=True)
+
+        mail = read_email()
+        assert mail['to'] == list(ALIAS_TO_MAIL.values())
+        assert mail['from'] == FROM_EMAIL
+
+        report = gen_weekly_report(data)
+
+        assert 'Informe Semanal' in mail['data']
+        assert 'Informe semanal' in report
+        assert 'Chiste del día' in report
+
+        assert 'Lunes' in report
+        assert 'Martes' in report
+        assert 'Miércoles' in report
+        assert 'Jueves' in report
+        assert 'Viernes' not in report
+        assert 'Sábado' not in report
+        assert 'Domingo' not in report
+
+    @freeze_time('2019-05-12')
+    def test_week_20(self, data):
+        assert main(weekly_report=True)
+
+        mail = read_email()
+        assert mail['to'] == list(ALIAS_TO_MAIL.values())
+        assert mail['from'] == FROM_EMAIL
+
+        report = gen_weekly_report(data)
+
+        assert 'Informe Semanal' in mail['data']
+        assert 'Informe semanal' in report
+        assert 'Chiste del día' in report
+
+        assert 'Lunes' in report
+        assert 'Martes' in report
+        assert 'Miércoles' in report
+        assert 'Jueves' in report
+        assert 'Viernes' not in report
+        assert 'Sábado' not in report
+        assert 'Domingo' not in report
+
+    @freeze_time('2019-05-19')
+    def test_week_21(self, data):
+        assert main(weekly_report=True)
+
+        mail = read_email()
+        assert mail['to'] == list(ALIAS_TO_MAIL.values())
+        assert mail['from'] == FROM_EMAIL
+
+        report = gen_weekly_report(data)
+
+        assert 'Informe Semanal' in mail['data']
+        assert 'Informe semanal' in report
+        assert 'Chiste del día' in report
+
+        assert 'Lunes' in report
+        assert 'Martes' in report
+        assert 'Miércoles' in report
+        assert 'Jueves' in report
+        assert 'Viernes' not in report
+        assert 'Sábado' not in report
+        assert 'Domingo' not in report
+
+    @freeze_time('2019-05-26')
+    def test_week_22(self, data):
+        assert main(weekly_report=True)
+
+        mail = read_email()
+        assert mail['to'] == list(ALIAS_TO_MAIL.values())
+        assert mail['from'] == FROM_EMAIL
+
+        report = gen_weekly_report(data)
+
+        assert 'Informe Semanal' in mail['data']
+        assert 'Informe semanal' in report
+        assert 'Chiste del día' in report
+
+        assert 'Lunes' not in report
+        assert 'Martes' not in report
+        assert 'Miércoles' not in report
+        assert 'Jueves' not in report
+        assert 'Viernes' in report
+        assert 'Sábado' not in report
+        assert 'Domingo' not in report
+
+    @freeze_time('2019-06-02')
+    def test_week_23(self, data):
+        assert not main(weekly_report=True)
+        assert not os.path.isfile(SMTP_PATH)
+
+        with pytest.raises(RuntimeError, match='Emtpy processed data'):
+            gen_weekly_report(data)
+
+    @freeze_time('2019-06-09')
+    def test_week_24(self, data):
+        assert not main(weekly_report=True)
+        assert not os.path.isfile(SMTP_PATH)
+
+        with pytest.raises(RuntimeError, match='Emtpy processed data'):
+            gen_weekly_report(data)
+
+    @freeze_time('2019-06-16')
+    def test_week_25(self, data):
+        assert main(weekly_report=True)
+
+        mail = read_email()
+        assert mail['to'] == list(ALIAS_TO_MAIL.values())
+        assert mail['from'] == FROM_EMAIL
+
+        report = gen_weekly_report(data)
+
+        assert 'Informe Semanal' in mail['data']
+        assert 'Informe semanal' in report
+        assert 'Chiste del día' in report
+
+        assert 'Lunes' not in report
+        assert 'Martes' not in report
+        assert 'Miércoles' not in report
+        assert 'Jueves' not in report
+        assert 'Viernes' in report
+        assert 'Sábado' not in report
+        assert 'Domingo' not in report
+
+    @freeze_time('2019-06-23')
+    def test_week_26(self, data):
+        assert not main(weekly_report=True)
+        assert not os.path.isfile(SMTP_PATH)
+
+        with pytest.raises(RuntimeError, match='Emtpy processed data'):
+            gen_weekly_report(data)
 
 
 # noinspection PyTypeChecker
@@ -1332,9 +1565,15 @@ class TestWeek25:
         assert main()
 
         today = get_daycode()
-        assert today not in data
-        assert not is_class(datetime.datetime.today())
-        assert not os.path.isfile(SMTP_PATH)
+        assert today in data
+        assert data[today] == 'D'
+        assert data[today] not in ALIAS_TO_MAIL
+
+        mail_data = read_email()
+        assert mail_data['to'] == list(ALIAS_TO_MAIL.values())
+        assert mail_data['from'] == FROM_EMAIL
+        assert 'hoy' in mail_data['data']
+        assert isinstance(mail_data, dict)
 
     @freeze_time('2019-06-22')
     def test_main_2019_06_22(self, data):
@@ -1388,15 +1627,9 @@ class TestWeek26:
         assert main()
 
         today = get_daycode()
-        assert today in data
-        assert data[today] == 'D'
-        assert data[today] not in ALIAS_TO_MAIL
-
-        mail_data = read_email()
-        assert mail_data['to'] == list(ALIAS_TO_MAIL.values())
-        assert mail_data['from'] == FROM_EMAIL
-        assert 'hoy' in mail_data['data']
-        assert isinstance(mail_data, dict)
+        assert today not in data
+        assert not is_class(datetime.datetime.today())
+        assert not os.path.isfile(SMTP_PATH)
 
     @freeze_time('2019-06-28')
     def test_main_2019_06_28(self, data):
@@ -1456,4 +1689,8 @@ def read_email():
     assert os.path.isfile(SMTP_PATH)
 
     with open(SMTP_PATH, encoding='utf-8') as fh:
-        return json.load(fh)
+        data = json.load(fh)
+
+    safe_delete_files()
+
+    return data
