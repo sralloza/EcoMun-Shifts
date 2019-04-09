@@ -23,6 +23,8 @@ class CustomSMTPServer(smtpd.SMTPServer):
 server = CustomSMTPServer(('127.0.0.1', 2626), None)
 
 threading.Thread(target=asyncore.loop, name='smtpd', daemon=True).start()
+
+
 from api import from_google_spreadsheets, TESTING_LOG_PATH
 
 SMTP_PATH = 'smtp.json'
@@ -45,7 +47,7 @@ def safe_delete_files():
         pass
 
 
-def teardown_module():
+def pytest_sessionfinish(*args):
     logging.shutdown()
 
     os.remove(TESTING_LOG_PATH)

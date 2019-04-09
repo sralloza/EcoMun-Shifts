@@ -225,7 +225,7 @@ def gen_joke():
     return random.choice(jokes)
 
 
-def gen_weekly_report(data: dict = None):
+def gen_weekly_report(data: dict = None, retries=10):
     from googletrans import Translator
 
     if data is None:
@@ -258,7 +258,16 @@ def gen_weekly_report(data: dict = None):
 
     for dt, value in converted.items():
         dt: datetime.datetime
-        report += translator.translate(dt.strftime('%A: '), dest='es', src='en').text
+
+        while retries:
+            try:
+                report += translator.translate(dt.strftime('%A: '), dest='es', src='en').text
+                break
+            except requests.exceptions.ConnectionError:
+                logger.warning('ConnectionError in translator')
+                retries -= 1
+                continue
+
         report += ' '
         report += value
         report += '\n'
