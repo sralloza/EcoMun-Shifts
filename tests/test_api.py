@@ -188,7 +188,11 @@ def test_gen_joke():
 
 class TestGenWeeklyReport:
     def test_gen_weekly_report(self):
-        report = gen_weekly_report()
+        try:
+            report = gen_weekly_report()
+        except RuntimeError as ex:
+            assert 'Empty processed data' in str(ex)
+            return
 
         assert 'Monday' not in report
         assert 'Tuesday' not in report
@@ -254,7 +258,7 @@ class TestGenWeeklyReport:
         assert not main(weekly_report=True)
         assert not os.path.isfile(SMTP_PATH)
 
-        with pytest.raises(RuntimeError, match='Emtpy processed data'):
+        with pytest.raises(RuntimeError, match='Empty processed data'):
             gen_weekly_report(data)
 
     @freeze_time('2019-04-21')
@@ -394,7 +398,7 @@ class TestGenWeeklyReport:
         assert not main(weekly_report=True)
         assert not os.path.isfile(SMTP_PATH)
 
-        with pytest.raises(RuntimeError, match='Emtpy processed data'):
+        with pytest.raises(RuntimeError, match='Empty processed data'):
             gen_weekly_report(data)
 
     @freeze_time('2019-06-09')
@@ -402,7 +406,7 @@ class TestGenWeeklyReport:
         assert not main(weekly_report=True)
         assert not os.path.isfile(SMTP_PATH)
 
-        with pytest.raises(RuntimeError, match='Emtpy processed data'):
+        with pytest.raises(RuntimeError, match='Empty processed data'):
             gen_weekly_report(data)
 
     @freeze_time('2019-06-16')
@@ -432,7 +436,7 @@ class TestGenWeeklyReport:
         assert not main(weekly_report=True)
         assert not os.path.isfile(SMTP_PATH)
 
-        with pytest.raises(RuntimeError, match='Emtpy processed data'):
+        with pytest.raises(RuntimeError, match='Empty processed data'):
             gen_weekly_report(data)
 
 

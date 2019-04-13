@@ -793,7 +793,7 @@ class TestWeek23:
         assert not os.path.isfile(SMTP_PATH)
 
     @freeze_time('2019-06-04')
-    def test_mail_2019_06_04(self, data):
+    def test_main_2019_06_04(self, data):
         assert main()
 
         today = get_daycode()

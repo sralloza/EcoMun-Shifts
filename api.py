@@ -251,7 +251,7 @@ def gen_weekly_report(data: dict = None, retries=10):
             converted[dt] = value
 
     if len(converted) == 0:
-        raise RuntimeError('Emtpy processed data')
+        raise RuntimeError('Empty processed data')
 
     report = f'Informe semanal (Semana No. {week})\n'
     translator = Translator()
