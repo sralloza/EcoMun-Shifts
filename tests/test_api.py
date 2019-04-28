@@ -299,7 +299,7 @@ class TestGenWeeklyReport:
 
         assert 'Lunes' in report
         assert 'Martes' in report
-        assert 'Miércoles' in report
+        assert 'Miércoles' not in report
         assert 'Jueves' in report
         assert 'Viernes' not in report
         assert 'Sábado' not in report
@@ -321,7 +321,7 @@ class TestGenWeeklyReport:
 
         assert 'Lunes' in report
         assert 'Martes' in report
-        assert 'Miércoles' in report
+        assert 'Miércoles' not in report
         assert 'Jueves' in report
         assert 'Viernes' not in report
         assert 'Sábado' not in report
@@ -527,7 +527,7 @@ def test_is_class():
     assert not is_class(dt(2019, 2, 1))
     assert not is_class(dt(2019, 3, 1))
     assert is_class(dt(2019, 4, 1))
-    assert is_class(dt(2019, 5, 1))
+    assert not is_class(dt(2019, 5, 1))
     assert not is_class(dt(2019, 6, 1))
     assert is_class(dt(2019, 7, 1))
     assert is_class(dt(2019, 8, 1))
@@ -589,7 +589,7 @@ def test_is_class():
 
 
 def test_days_to_cell():
-    assert len(DAYS_TO_CELL) == 28
+    assert len(DAYS_TO_CELL) == 27
     assert isinstance(DAYS_TO_CELL, dict)
 
 

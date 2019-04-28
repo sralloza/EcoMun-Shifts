@@ -226,6 +226,7 @@ def gen_joke():
 
 
 def gen_weekly_report(data: dict = None, retries=10):
+    # todo - make the report in order (monday, tuesday, wednesday...) and make tests.
     from googletrans import Translator
 
     if data is None:
@@ -299,6 +300,8 @@ def is_class(dt: datetime.datetime):
         return False
     if datetime.datetime(2019, 6, 1) <= dt <= datetime.datetime(2019, 6, 27):
         return False
+    if dt == datetime.datetime(2019, 5, 1):
+        return False
 
     return dt.isoweekday() not in (5, 6, 7)
 
@@ -308,7 +311,7 @@ DAYS_TO_CELL = {
     408: 'G6', 409: 'H6', 410: 'I6', 411: 'J6',
     424: 'I8', 425: 'J8',
     429: 'G9', 430: 'H9',
-    501: 'O5', 502: 'P5',
+    502: 'P5',
     506: 'M6', 507: 'N6', 508: 'O6', 509: 'P6',
     513: 'M7', 514: 'N7', 515: 'O7', 516: 'P7',
     520: 'M8', 521: 'N8', 522: 'O8', 523: 'P8',
