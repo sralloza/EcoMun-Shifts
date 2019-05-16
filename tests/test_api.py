@@ -230,7 +230,6 @@ class TestGenWeeklyReport:
         assert 'Sábado' not in report
         assert 'Domingo' not in report
 
-    @pytest.mark.focus
     @freeze_time('2019-04-07')
     def test_week_15(self, data):
         assert main(weekly_report=True)
