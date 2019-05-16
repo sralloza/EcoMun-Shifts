@@ -50,7 +50,10 @@ def safe_delete_files():
 def pytest_sessionfinish(*args):
     logging.shutdown()
 
-    os.remove(TESTING_LOG_PATH)
+    try:
+        os.remove(TESTING_LOG_PATH)
+    except FileNotFoundError:
+        pass
     return safe_delete_files()
 
 
