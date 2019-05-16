@@ -302,6 +302,8 @@ def is_class(dt: datetime.datetime):
         return False
     if dt == datetime.datetime(2019, 5, 1):
         return False
+    if dt == datetime.datetime(2019, 5, 13):
+        return False
 
     return dt.isoweekday() not in (5, 6, 7)
 
@@ -313,7 +315,7 @@ DAYS_TO_CELL = {
     429: 'G9', 430: 'H9',
     502: 'P5',
     506: 'M6', 507: 'N6', 508: 'O6', 509: 'P6',
-    513: 'M7', 514: 'N7', 515: 'O7', 516: 'P7',
+    514: 'N7', 515: 'O7', 516: 'P7',
     520: 'M8', 521: 'N8', 522: 'O8', 523: 'P8',
     531: 'Q9',
     621: 'W8',

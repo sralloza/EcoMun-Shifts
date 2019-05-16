@@ -522,18 +522,11 @@ class TestWeek20:
     @freeze_time('2019-05-13')
     def test_main_2019_05_13(self, data):
         assert main()
+
         today = get_daycode()
-
-        assert today in data
-        assert is_class(datetime.datetime.today())
-        assert data[today] == 'VHP'
-        assert data[today] in ALIAS_TO_MAIL
-
-        mail_data = read_email()
-        assert mail_data['to'] == [ALIAS_TO_MAIL['VHP'], ]
-        assert mail_data['from'] == FROM_EMAIL
-        assert 'hoy' in mail_data['data']
-        assert isinstance(mail_data, dict)
+        assert today not in data
+        assert not is_class(datetime.datetime.today())
+        assert not os.path.isfile(SMTP_PATH)
 
     @freeze_time('2019-05-14')
     def test_main_2019_05_14(self, data):

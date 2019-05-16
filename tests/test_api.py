@@ -341,7 +341,7 @@ class TestGenWeeklyReport:
         assert 'Informe semanal' in report
         assert 'Chiste del día' in report
 
-        assert 'Lunes' in report
+        assert 'Lunes' not in report
         assert 'Martes' in report
         assert 'Miércoles' in report
         assert 'Jueves' in report
@@ -589,7 +589,7 @@ def test_is_class():
 
 
 def test_days_to_cell():
-    assert len(DAYS_TO_CELL) == 27
+    assert len(DAYS_TO_CELL) == 26
     assert isinstance(DAYS_TO_CELL, dict)
 
 
